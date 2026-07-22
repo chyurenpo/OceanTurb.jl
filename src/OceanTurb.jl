@@ -97,7 +97,8 @@ export # This file, core functionality:
     KPP,
     ModularKPP,
     PacanowskiPhilander,
-    TKEMassFlux
+    TKEMassFlux,
+    MellorYamada25
 
 using
     Printf,
@@ -213,6 +214,7 @@ include("models/Diffusion.jl")
 include("models/KPP.jl")
 include("models/ModularKPP/ModularKPP.jl")
 include("models/TKEMassFlux/TKEMassFlux.jl")
+include("models/MellorYamada25/MellorYamada25.jl")
 include("models/PacanowskiPhilander.jl")
 
 # Convenient utilities for plotting
