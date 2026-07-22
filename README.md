@@ -5,74 +5,46 @@
 | [![docs][docs-img]][docs-url] | [![travis][travis-img]][travis-url] |[![MIT license](https://img.shields.io/badge/License-MIT-blue.svg)](https://mit-license.org/)|
 
 
-`OceanTurb.jl` provides software for solving one-dimensional
-models that approximate the physics of the
-ocean's turbulent surface boundary layer.
+# OceanTurb.jl: Additional Turbulence Closure Schemes
 
-## Installation
+This repository is an experimental research fork of
+[OceanTurb.jl](https://github.com/glwagner/OceanTurb.jl), a Julia package
+for studying turbulence models and parameterizations in ocean boundary layers.
 
-Open [julia](https://julialang.org), press `]` to enter package manager mode, and type
+The purpose of this fork is to implement and evaluate additional turbulence
+closure schemes that are not included in the original OceanTurb.jl repository.
+Current development focuses on the Mellor–Yamada Level 2.5 (MY2.5), k–ω,
+and k–ε closure schemes for one-dimensional ocean boundary-layer simulations.
+This fork also focuses on the development and evaluation of bottom
+boundary-layer parameterizations formulated in slope-following coordinate
+systems.
 
-```julia
-pkg> add OceanTurb
-```
+## Current additions and development status
 
-## Example(s)
+The following table summarizes the current implementation status and planned
+development of this research fork.
 
-With `OceanTurb.jl` installed, try
+| Component | Description | Status |
+|---|---|---|
+| Mellor–Yamada Level 2.5 (MY2.5) closure | Implementation of a prognostic turbulent kinetic energy closure for one-dimensional ocean boundary-layer simulations | Experimental implementation completed|
+| k–ω closure | Two-equation turbulence closure based on turbulent kinetic energy and specific dissipation rate | Planned |
+| k–ε closure | Two-equation turbulence closure based on turbulent kinetic energy and dissipation rate | Planned |
+| Sloping-coordinate formulation | Extension of the one-dimensional governing equations to slope-following coordinates | In progress |
+| Sloping bottom boundary-layer parameterizations | Application and evaluation of turbulence closures for ocean bottom boundary layers over sloping topography | In progress |
 
-```julia
-using OceanTurb
+## Test Case
+Coming soon!
 
-@use_pyplot_utils # add utilities for plotting OceanTurb Fields
 
-     N = 128        # Model resolution
-     H = 128        # Vertical extent of the model domain
-    Qb = 1e-7       # Surface buoyancy flux (positive implies cooling)
-  dTdz = 1e-3       # Interior/initial temperature gradient
-    Δt = 10minute   # Time step size
-tfinal = 8hour      # Final time
+## AI-assisted development
 
-# Build the model with a Backward Euler timestepper
-model = KPP.Model(N=N, H=H, stepper=:BackwardEuler)
+Generative AI tools, including ChatGPT by OpenAI, were used to assist with
+parts of code drafting and debugging.
 
-# Set initial condition
-T₀(z) = 20 + dTdz * z
-model.solution.T = T₀
+The governing equations, numerical formulation, implementation, test cases,
+and scientific interpretation were reviewed by the repository author, who
+takes responsibility for the released code and results.
 
-# Set boundary conditions
-model.bcs.T.top = FluxBoundaryCondition(Qb / (model.constants.α * model.constants.g))
-model.bcs.T.bottom = GradientBoundaryCondition(dTdz)
-
-# Run the model
-run_until!(model, Δt, tfinal)
-
-plot(model.solution.T)
-removespines("top", "right")
-xlabel("Temperature (\$ {}^\\circ \\mathrm{C} \$)")
-ylabel(L"z \, \mathrm{(m)}")
-```
-
-to make a plot that looks something like this:
-
-<img src="examples/figs/kpp_free_convection.png" width="600">
-
-For a more complicated example, see `examples/modular_kpp_example.jl`
-to produce
-
-<img src="examples/figs/free_convection_intermodel.png" width="600">
-
-which compares various flavors of the 'KPP' boundary layer model
-with one another.
-
-# The turbulence models
-
-Check the documentation or `src/models/` for the latest update
-on turbulence models we have implemented.
-
-# Authors
-
-[Gregory Wagner](https://glwagner.github.io).
 
 
 [docs-img]: https://img.shields.io/badge/docs-dev-blue.svg
