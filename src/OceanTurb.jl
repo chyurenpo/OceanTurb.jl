@@ -98,7 +98,10 @@ export # This file, core functionality:
     ModularKPP,
     PacanowskiPhilander,
     TKEMassFlux,
-    MellorYamada25
+    MellorYamada25,
+    KOmega,
+    KEpsilon,
+    CATKE
 
 using
     Printf,
@@ -215,6 +218,9 @@ include("models/KPP.jl")
 include("models/ModularKPP/ModularKPP.jl")
 include("models/TKEMassFlux/TKEMassFlux.jl")
 include("models/MellorYamada25/MellorYamada25.jl")
+include("models/KOmega/KOmega.jl")
+include("models/KEpsilon/KEpsilon.jl")
+include("models/CATKE/CATKE.jl")
 include("models/PacanowskiPhilander.jl")
 
 # Convenient utilities for plotting
@@ -222,7 +228,7 @@ macro use_pyplot_utils()
     return esc(quote
         using PyPlot, PyCall
 
-        if !("OceanTurbPyPlotUtils" in [item[1] for item in varinfo().content[1].rows])
+        if !isdefined(Main, :OceanTurbPyPlotUtils)
             include(joinpath(@__DIR__, "..", "plotting", "OceanTurbPyPlotUtils.jl"))
         end
 

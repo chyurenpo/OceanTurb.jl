@@ -1,26 +1,24 @@
-module MellorYamada25
+module KEpsilon
 
 using OceanTurb
 
 using OceanTurb: minuszero
-import OceanTurb: oncell, onface
+import OceanTurb: onface
 
 const nsol = 6
-@solution U V T S e q2l
+@solution U V T S k epsilon
 
 """
     Model
 
-A GOTM-compatible implementation of the Mellor-Yamada level-2.5
-closure. It combines the `q²/2` and `q²l` transport equations with the
-weak-equilibrium Kantha-Clayson second-moment closure used by the
-canonical GOTM ocean configuration.
+An oceanic `k`-`epsilon` two-equation turbulence closure following the
+Rodi (1987) formulation used by GOTM for stratified geophysical flows.
 
 Prognostic fields:
 - `U`, `V`: horizontal velocity components
 - `T`, `S`: temperature and salinity
-- `e = q²/2`: turbulent kinetic energy
-- `q2l = q² ℓ = 2eℓ`: Mellor–Yamada length-scale variable
+- `k`: turbulent kinetic energy
+- `epsilon`: turbulent kinetic energy dissipation rate
 """
 mutable struct Model{P, K0, C, ST, G, TS, S, BC, T, F} <: AbstractModel{TS, G, T}
     clock                    :: Clock{T}
@@ -35,8 +33,8 @@ mutable struct Model{P, K0, C, ST, G, TS, S, BC, T, F} <: AbstractModel{TS, G, T
     forcing                  :: F
 end
 
+include("../canuto_a_stability_functions.jl")
 include("parameters.jl")
-include("stability_functions.jl")
 include("state.jl")
 include("diffusivities.jl")
 include("turbulence_equations.jl")
@@ -47,52 +45,52 @@ addzero(args...) = 0
 """
     Forcing(; U=addzero, V=addzero, T=addzero, S=addzero)
 
-Construct mean-field forcing functions for a MY2.5 `Model`. Each function
-must have the signature `forcing(model, i)`, where `i` is a cell index.
-The default forcing is identically zero.
+Construct mean-field forcing functions for a k-epsilon `Model`. Each
+function must have the signature `forcing(model, i)`, where `i` is a
+cell index. The default forcing is identically zero.
 """
 Forcing(; U=addzero, V=addzero, T=addzero, S=addzero) =
     (U=U, V=V, T=T, S=S)
 
 """
-    ModelBoundaryConditions([FT=Float64]; U, V, T, S, e, q2l)
+    ModelBoundaryConditions([FT=Float64]; U, V, T, S, k, epsilon)
 
-Construct boundary conditions for the six prognostic MY2.5 fields.
+Construct boundary conditions for the six prognostic k-epsilon fields.
 The turbulence variables default to GOTM's logarithmic Neumann
-conditions: zero flux for `e` and logarithmic wall fluxes for `q2l`.
+conditions.
 """
 function ModelBoundaryConditions(FT=Float64;
-    U    = DefaultBoundaryConditions(FT),
-    V    = DefaultBoundaryConditions(FT),
-    T    = DefaultBoundaryConditions(FT),
-    S    = DefaultBoundaryConditions(FT),
-    e    = nothing,
-    q2l  = nothing,
-    parameters = MY25Parameters(),
+    U       = DefaultBoundaryConditions(FT),
+    V       = DefaultBoundaryConditions(FT),
+    T       = DefaultBoundaryConditions(FT),
+    S       = DefaultBoundaryConditions(FT),
+    k       = nothing,
+    epsilon = nothing,
+    parameters = KEpsilonParameters(),
 )
-    default_e, default_q2l =
+    default_k, default_epsilon =
         LogarithmicNeumannBoundaryConditions(
             FT;
             parameters=parameters,
         )
-    e === nothing && (e = default_e)
-    q2l === nothing && (q2l = default_q2l)
-    return (U=U, V=V, T=T, S=S, e=e, q2l=q2l)
+    k === nothing && (k = default_k)
+    epsilon === nothing && (epsilon = default_epsilon)
+    return (U=U, V=V, T=T, S=S, k=k, epsilon=epsilon)
 end
 
 """
     Model(; grid, parameters, background_diffusivities, constants,
-            stepper=:BackwardEuler, bcs, initial_tke, forcing)
+            stepper=:BackwardEuler, bcs, initial_tke,
+            initial_epsilon, forcing)
 
-Construct a Mellor–Yamada 2.5 model.
+Construct an oceanic k-epsilon model.
 
-This implementation uses OceanTurb's backward-Euler diffusion and
-linear-sink machinery. Destructive TKE and q²ℓ terms are represented
-as positive implicit sink coefficients.
+Diffusion and destructive turbulence terms are treated with OceanTurb's
+backward-Euler diffusion and positive implicit-sink machinery.
 """
 function Model(;
     grid = UniformGrid(N=64, H=50),
-    parameters = MY25Parameters(),
+    parameters = KEpsilonParameters(),
     background_diffusivities = BackgroundDiffusivities(),
     constants = Constants(),
     stepper = :BackwardEuler,
@@ -101,10 +99,10 @@ function Model(;
         parameters=parameters,
     ),
     initial_tke = parameters.k_min,
-    initial_epsilon = parameters.eps_min,
+    initial_epsilon = parameters.epsilon_min,
     forcing = Forcing(),
 )
-    @assert grid.N ≥ 2 "MellorYamada25.Model requires at least two vertical cells."
+    @assert grid.N ≥ 2 "KEpsilon.Model requires at least two vertical cells."
     validate_parameters(parameters)
     validate_background_diffusivities(background_diffusivities)
 
@@ -117,34 +115,34 @@ function Model(;
         initial_epsilon,
     )
 
-    Kϕ = (
-        U    = KU,
-        V    = KV,
-        T    = KT,
-        S    = KS,
-        e    = Ke,
-        q2l  = Kq2l,
+    Kphi = (
+        U       = KU,
+        V       = KV,
+        T       = KT,
+        S       = KS,
+        k       = Kk,
+        epsilon = Kepsilon,
     )
 
-    Rϕ = (
-        U    = RU,
-        V    = RV,
-        T    = RT,
-        S    = RS,
-        e    = Re,
-        q2l  = Rq2l,
+    Rphi = (
+        U       = RU,
+        V       = RV,
+        T       = RT,
+        S       = RS,
+        k       = Rk,
+        epsilon = Repsilon,
     )
 
-    Lϕ = (
-        U    = minuszero,
-        V    = minuszero,
-        T    = minuszero,
-        S    = minuszero,
-        e    = Le,
-        q2l  = Lq2l,
+    Lphi = (
+        U       = minuszero,
+        V       = minuszero,
+        T       = minuszero,
+        S       = minuszero,
+        k       = Lk,
+        epsilon = Lepsilon,
     )
 
-    equation = Equation(K=Kϕ, R=Rϕ, L=Lϕ, update=update_state!)
+    equation = Equation(K=Kphi, R=Rphi, L=Lphi, update=update_state!)
     lhs = OceanTurb.build_lhs(solution)
     timestepper = Timestepper(stepper, equation, solution, lhs)
 
@@ -174,24 +172,25 @@ end
 export Model,
        ModelBoundaryConditions,
        Forcing,
-       MY25Parameters,
+       KEpsilonParameters,
        BackgroundDiffusivities,
-       KanthaClaysonCoefficients,
-       kantha_clayson_reference_values,
-       kantha_clayson_quasi_equilibrium,
-       kantha_clayson_weak_equilibrium,
-       kantha_clayson_compute_my25_E3,
-       kantha_clayson_my25_coefficients,
+       canuto_a_coefficients,
+       canuto_a_reference_values,
+       canuto_a_weak_equilibrium,
+       canuto_a_quasi_equilibrium,
+       canuto_a_compute_c3_stable,
+       canuto_a_kepsilon_coefficients,
        LogarithmicNeumannBoundaryConditions,
-       logarithmic_q2l_flux,
+       logarithmic_epsilon_flux,
        BottomLogarithmicWallConditions,
        TopLogarithmicWallConditions,
        friction_velocity,
        logarithmic_tke_value,
-       logarithmic_q2l_value,
+       logarithmic_epsilon_value,
        update_state!,
        shear_production,
        buoyancy_production,
-       dissipation
+       dissipation,
+       turbulent_length_scale
 
-end # module MellorYamada25
+end # module KEpsilon

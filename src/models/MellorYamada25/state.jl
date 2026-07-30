@@ -31,20 +31,22 @@ end
     return nothing
 end
 
-function initialize_turbulence!(solution, grid, p, initial_tke)
+function initialize_turbulence!(
+    solution,
+    grid,
+    p,
+    initial_tke,
+    initial_epsilon,
+)
     e0 = max(initial_tke, p.k_min)
-    ℓmin = minimum_length(p)
+    ε0 = max(initial_epsilon, p.eps_min)
+    ℓ0 = cde(p) * e0^(3/2) / ε0
+    q2l0 = max(2 * e0 * ℓ0, p.q2l_min)
 
     for i in eachindex(solution.e)
-        z = grid.zc[i]
-        db = z + grid.H
-        ds = -z
-        nearest_wall = max(min(db + p.z0_bottom, ds + p.z0_top), ℓmin / p.κ)
-        ℓ0 = max(ℓmin, p.κ * nearest_wall)
-
         @inbounds begin
             solution.e[i] = e0
-            solution.q2l[i] = max(2 * e0 * ℓ0, p.q2l_min)
+            solution.q2l[i] = q2l0
         end
     end
 
@@ -102,21 +104,26 @@ end
     end
 end
 
-@inline function limited_length_scale(e, q2l, N2, p)
+@inline function diagnose_length_and_epsilon(e, q2l, N2, p)
     ℓmin = minimum_length(p)
-    ℓ = max(q2l / (2 * max(e, p.k_min)), ℓmin)
+    e = max(e, p.k_min)
+    ℓ = q2l / (2 * e)
 
     if p.length_limit && N2 > 0
-        ℓcrit = p.galperin * sqrt(2 * max(e, p.k_min) / N2)
+        ℓcrit = p.galperin * sqrt(2 * e / N2)
         ℓ = min(ℓ, ℓcrit)
     end
 
-    return max(ℓ, ℓmin)
-end
+    ℓ = max(ℓ, ℓmin)
+    ε = cde(p) * e^(3/2) / ℓ
 
-@inline function epsilon_from_tke_length(e, ℓ, p)
-    ε = cde(p) * max(e, p.k_min)^(3/2) / max(ℓ, minimum_length(p))
-    return max(ε, p.eps_min)
+    # GOTM resets L consistently if the dissipation floor is active.
+    if ε < p.eps_min
+        ε = p.eps_min
+        ℓ = cde(p) * e^(3/2) / ε
+    end
+
+    return ℓ, ε
 end
 
 function clip_prognostic_turbulence!(m)
@@ -136,7 +143,6 @@ end
 
 function update_state!(m)
     p = m.parameters
-    c = m.second_moment_coefficients
 
     clip_prognostic_turbulence!(m)
 
@@ -148,12 +154,17 @@ function update_state!(m)
             M2 = cell_shear_squared(m, i)
             N2 = cell_buoyancy_frequency_squared(m, i)
             Lz = max(diagnostic_wall_length(m, i), minimum_length(p))
-            ℓ = limited_length_scale(e, q2l, N2, p)
-            ε = epsilon_from_tke_length(e, ℓ, p)
+            ℓ, ε =
+                diagnose_length_and_epsilon(e, q2l, N2, p)
 
+            alpha_M_raw = (e / ε)^2 * M2
             alpha_N_raw = (e / ε)^2 * N2
             alpha_M, alpha_N, c_mu, c_mu_p =
-                my82_quasi_equilibrium(alpha_N_raw, p, c)
+                kantha_clayson_weak_equilibrium(
+                    alpha_M_raw,
+                    alpha_N_raw,
+                    p.c_mu0,
+                )
 
             sqrt_e = sqrt(e)
             q = sqrt(2 * e)

@@ -49,7 +49,8 @@ end
     production = ℓ * p.E1 * P
     buoyancy = p.E3 * ℓ * B
 
-    q3 = (2 * max(e, p.k_min))^(3/2)
+    e = max(e, p.k_min)
+    q3 = sqrt(8 * e * e * e)
     destruction = q3 / p.B1 * (1 + p.E2 * (ℓ/Lz)^2)
 
     return production, buoyancy, destruction

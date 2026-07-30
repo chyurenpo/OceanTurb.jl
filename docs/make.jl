@@ -24,6 +24,10 @@ makedocs(
                   "models/kpp.md",
                   "models/modular_kpp.md",
                   "models/tke_mass_flux.md",
+                  "models/mellor_yamada25.md",
+                  "models/komega.md",
+                  "models/kepsilon.md",
+                  "models/catke.md",
                   "models/pacanowskiphilander.md"],
                 "DocStrings" => Any[
                       "man/types.md",

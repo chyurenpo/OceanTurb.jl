@@ -1,0 +1,6 @@
+suite_hours,source_file,start_time_s,final_time_s,buoyancy_flux_m2_s-3,tracer_forcing_timescale_s,source_Nz,target_Nz,target_dz_m,max_initial_interpolation_residual
+6,input/les_1m/6_hour_suite/free_convection_with_tracer_instantaneous_statistics.jld2,600.0,21600.0,9.6000000000e-07,900.0,256,128,2.000000,1.3145932156e-04
+12,input/les_1m/12_hour_suite/free_convection_with_tracer_instantaneous_statistics.jld2,600.0,43200.0,4.8000000000e-07,1800.0,256,128,2.000000,6.8052938565e-05
+24,input/les_1m/24_hour_suite/free_convection_with_tracer_instantaneous_statistics.jld2,600.0,86400.0,2.4000000000e-07,3600.0,256,128,2.000000,3.4348532036e-05
+48,input/les_1m/48_hour_suite/free_convection_with_tracer_instantaneous_statistics.jld2,600.0,172800.0,1.2000000000e-07,7200.0,256,128,2.000000,1.7231807185e-05
+72,input/les_1m/72_hour_suite/free_convection_with_tracer_instantaneous_statistics.jld2,600.0,259200.0,8.7000000000e-08,14400.0,256,128,2.000000,1.2501302307e-05

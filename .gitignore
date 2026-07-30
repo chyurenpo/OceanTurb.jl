@@ -11,3 +11,14 @@ examples/.ipynb_checkpoints/
 *.jld
 *.jld2
 *.mp4
+
+# Paper-based examples: retain compact inputs and one representative
+# figure per case, but not the raw LES archive or generated outputs.
+examples/free_convection_les/input/
+examples/free_convection_les/output/
+examples/free_convection_les/.ipynb_checkpoints/
+examples/rotating_strong_wind_les/input/
+examples/rotating_strong_wind_les/output/
+examples/rotating_strong_wind_les/.ipynb_checkpoints/
+!examples/free_convection_les/figures/free_convection_closures.png
+!examples/rotating_strong_wind_les/figures/rotating_strong_wind_closures.png
