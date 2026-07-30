@@ -20,9 +20,9 @@ framework.
 
 | Component | Formulation in this fork | Status |
 |:----------|:-------------------------|:-------|
-| Mellor--Yamada level 2.5 (`MellorYamada25`) | Prognostic turbulent kinetic energy and \(q^2\ell\), with Kantha--Clayson weak-equilibrium stability functions | Implemented, tested, and documented |
-| Oceanic \(k\)-\(\omega\) (`KOmega`) | Prognostic turbulent kinetic energy and specific dissipation rate, with Canuto-A stability functions | Implemented, tested, and documented |
-| Oceanic \(k\)-\(\epsilon\) (`KEpsilon`) | Prognostic turbulent kinetic energy and dissipation rate, with Canuto-A stability functions | Implemented, tested, and documented |
+| Mellor–Yamada level 2.5 (`MellorYamada25`) | Prognostic turbulent kinetic energy and q²ℓ, with Kantha–Clayson weak-equilibrium stability functions | Implemented, tested, and documented |
+| Oceanic k–ω (`KOmega`) | Prognostic turbulent kinetic energy and specific dissipation rate, with Canuto-A stability functions | Implemented, tested, and documented |
+| Oceanic k–ε (`KEpsilon`) | Prognostic turbulent kinetic energy and dissipation rate, with Canuto-A stability functions | Implemented, tested, and documented |
 | CATKE (`CATKE`) | One-equation convective-adjustment turbulent kinetic energy closure | Implemented, tested, and documented |
 | LES-based examples | Free convection and rotating strong-wind mixing, corresponding to the physical cases underlying Figures 5 and 7 of Wagner et al. (2025) | Included |
 
@@ -43,7 +43,7 @@ pkg> add https://github.com/chyurenpo/OceanTurb.jl#more-schemes
 ## Turbulence models
 
 OceanTurb also retains the original diffusion, KPP, modular KPP,
-Pacanowski--Philander, and TKE mass-flux models. See the
+Pacanowski–Philander, and TKE mass-flux models. See the
 [model documentation](docs/src/models/) or [`src/models/`](src/models/)
 for formulations, parameters, and construction examples.
 
@@ -55,8 +55,8 @@ official large-eddy simulation profiles from Wagner et al. (2025):
 - free-convection LES cases; and
 - rotating strong-wind LES cases.
 
-Both workflows evaluate CATKE, KPP, Mellor--Yamada 2.5,
-\(k\)-\(\omega\), and \(k\)-\(\epsilon\) from common LES initial
+Both workflows evaluate CATKE, KPP, Mellor–Yamada 2.5,
+k–ω, and k–ε from common LES initial
 conditions. They reproduce the physical configurations rather than
 every detail of the manuscript calculations. See
 [`examples/README.md`](examples/README.md) for instructions, data
@@ -69,8 +69,8 @@ provenance, and interpretation.
 ## Authors and contributors
 
 - [Gregory Wagner](https://glwagner.github.io) — original author of OceanTurb.jl.
-- [Chunyu Ren](https://github.com/chyurenpo) — development of the MY2.5, \(k\)-\(\omega\), and
-  \(k\)-\(\epsilon\) closures and the LES-based examples in this research fork.
+- [Chunyu Ren](https://github.com/chyurenpo) — development of the MY2.5, k–ω, and
+  k–ε closures and the LES-based examples in this research fork.
 
 [docs-img]: https://img.shields.io/badge/docs-dev-blue.svg
 [docs-url]: https://glwagner.github.io/OceanTurb.jl/dev/
