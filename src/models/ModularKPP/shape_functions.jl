@@ -5,5 +5,5 @@ Base.@kwdef struct GeneralizedCubicPolynomial{T} <: AbstractParameters
     CS1 :: T = 1.0
 end
 
-shape(d, p::StandardCubicPolynomial) = d * (1-d)
+shape(d, p::StandardCubicPolynomial) = d * (1-d)^2
 shape(d, p::GeneralizedCubicPolynomial) = d * (1-d) * ( p.CS0 + p.CS1*(1-d) )

@@ -52,4 +52,14 @@ shape_functions = (
             end
         end
     end
+
+    # Shape function values: StandardCubicPolynomial must match the LMD94 cubic
+    # d*(1-d)^2 documented in docs/src/models/modular_kpp.md, and must therefore
+    # agree with GeneralizedCubicPolynomial's default (CS0=0, CS1=1), which reduces
+    # to the same cubic.
+    for d in (0.1, 1/3, 0.5, 0.75, 0.9)
+        @test ModularKPP.shape(d, ModularKPP.StandardCubicPolynomial()) ≈ d * (1-d)^2
+        @test ModularKPP.shape(d, ModularKPP.StandardCubicPolynomial()) ≈
+              ModularKPP.shape(d, ModularKPP.GeneralizedCubicPolynomial())
+    end
 end
